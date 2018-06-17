@@ -83,6 +83,7 @@ void BLEService::executeCreate(BLEServer *pServer) {
 
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gatts_create_service: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+		m_semaphoreCreateEvt.give();
 		return;
 	}
 
@@ -145,6 +146,7 @@ void BLEService::start() {
 
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "<< esp_ble_gatts_start_service: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+		m_semaphoreStartEvt.give();
 		return;
 	}
 	m_semaphoreStartEvt.wait("start");

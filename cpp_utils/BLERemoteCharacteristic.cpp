@@ -495,6 +495,7 @@ std::string BLERemoteCharacteristic::readValue() {
 
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gattc_read_char: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+		m_semaphoreReadCharEvt.give();
 		return "";
 	}
 
@@ -534,6 +535,8 @@ void BLERemoteCharacteristic::registerForNotify(
 
 		if (errRc != ESP_OK) {
 			ESP_LOGE(LOG_TAG, "esp_ble_gattc_register_for_notify: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+			m_semaphoreRegForNotifyEvt.give();
+			return;
 		}
 	} // End Register
 	else {   // If we weren't passed a callback function, then this is an unregistration.
@@ -545,6 +548,8 @@ void BLERemoteCharacteristic::registerForNotify(
 
 		if (errRc != ESP_OK) {
 			ESP_LOGE(LOG_TAG, "esp_ble_gattc_unregister_for_notify: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+			m_semaphoreRegForNotifyEvt.give();
+			return;
 		}
 	} // End Unregister
 
@@ -614,6 +619,7 @@ void BLERemoteCharacteristic::writeValue(std::string newValue, bool response) {
 
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gattc_write_char: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+		m_semaphoreWriteCharEvt.give();
 		return;
 	}
 
