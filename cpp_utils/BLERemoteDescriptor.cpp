@@ -75,6 +75,7 @@ std::string BLERemoteDescriptor::readValue(void) {
 
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gattc_read_char: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+		m_semaphoreReadDescrEvt.give();
 		return "";
 	}
 
@@ -142,6 +143,8 @@ void BLERemoteDescriptor::writeValue(
 		throw BLEDisconnectedException();
 	}
 
+	m_semaphoreWriteDescrEvt.take("writeValue");
+
 	esp_err_t errRc = ::esp_ble_gattc_write_char_descr(
 		m_pRemoteCharacteristic->getRemoteService()->getClient()->getGattcIf(),
 		m_pRemoteCharacteristic->getRemoteService()->getClient()->getConnId(),
@@ -153,7 +156,10 @@ void BLERemoteDescriptor::writeValue(
 	);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gattc_write_char_descr: %d", errRc);
+		m_semaphoreWriteDescrEvt.give();
+		return;
 	}
+	m_semaphoreWriteDescrEvt.wait("writeValue");
 	ESP_LOGD(LOG_TAG, "<< writeValue");
 } // writeValue
 

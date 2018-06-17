@@ -193,7 +193,7 @@ void BLERemoteCharacteristic::gattClientEventHandler(
 		// - uint16_t           handle
 		// - uint8_t*           value
 		// - uint16_t           value_len
-	  //
+	    //
 		case ESP_GATTC_READ_CHAR_EVT: {
 			// If this event is not for us, then nothing further to do.
 			if (evtParam->read.handle != getHandle()) {
@@ -211,6 +211,49 @@ void BLERemoteCharacteristic::gattClientEventHandler(
 			m_semaphoreReadCharEvt.give();
 			break;
 		} // ESP_GATTC_READ_CHAR_EVT
+
+
+		//
+		// ESP_GATTC_READ_DESCR_EVT
+		// This event indicates that the server has responded to the descriptor read request.
+		//
+		// read:
+		// - esp_gatt_status_t  status
+		// - uint16_t           conn_id
+		// - uint16_t           handle
+		// - uint8_t*           value
+		// - uint16_t           value_len
+	    //
+		case ESP_GATTC_READ_DESCR_EVT : {
+			// If this event is not for us, then nothing further to do.
+			for (auto &myPair : m_descriptorMap) {
+				if(myPair.second->getHandle() == evtParam->read.handle) {
+					myPair.second->m_semaphoreReadDescrEvt.give();
+	    		}
+			}
+			break;
+		} // ESP_GATTC_READ_DESCR_EVT 
+
+
+		//
+		// ESP_GATTC_WRITE_DESCR_EVT
+		// This event indicates that the server has responded to the descriptor write request.
+		//
+		// write:
+		// - esp_gatt_status_t  status
+		// - uint16_t           conn_id
+		// - uint16_t           handle
+		// - uint16_t           offset
+	    //
+		case ESP_GATTC_WRITE_DESCR_EVT : {
+			// If this event is not for us, then nothing further to do.
+			for (auto &myPair : m_descriptorMap) {
+				if(myPair.second->getHandle() == evtParam->write.handle) {
+					myPair.second->m_semaphoreWriteDescrEvt.give();
+	    		}
+			}
+			break;
+		} // ESP_GATTC_WRITE_DESCR_EVT 
 
 
 		//
