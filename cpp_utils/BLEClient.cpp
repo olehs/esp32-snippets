@@ -99,6 +99,7 @@ bool BLEClient::connect(BLEAddress address) {
 	esp_err_t errRc = ::esp_ble_gattc_app_register(0);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gattc_app_register: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+		m_semaphoreRegEvt.give();
 		return false;
 	}
 
@@ -116,6 +117,7 @@ bool BLEClient::connect(BLEAddress address) {
 	);
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gattc_open: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+		m_semaphoreOpenEvt.give();
 		return false;
 	}
 
@@ -294,6 +296,7 @@ int BLEClient::getRssi() {
 	esp_err_t rc = ::esp_ble_gap_read_rssi(*getPeerAddress().getNative());
 	if (rc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "<< getRssi: esp_ble_gap_read_rssi: rc=%d %s", rc, GeneralUtils::errorToString(rc));
+		m_semaphoreRssiCmplEvt.give();
 		return 0;
 	}
 	int rssiValue = m_semaphoreRssiCmplEvt.wait("getRssi");
@@ -367,6 +370,7 @@ std::map<std::string, BLERemoteService*>* BLEClient::getServices() {
 	m_semaphoreSearchCmplEvt.take("getServices");
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gattc_search_service: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
+		m_semaphoreSearchCmplEvt.give();
 		return &m_servicesMap;
 	}
 	// If sucessfull, remember that we now have services.
