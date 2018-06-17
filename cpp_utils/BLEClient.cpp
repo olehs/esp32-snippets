@@ -362,12 +362,12 @@ std::map<std::string, BLERemoteService*>* BLEClient::getServices() {
 
 	clearServices(); // Clear any services that may exist.
 
+	m_semaphoreSearchCmplEvt.take("getServices");
 	esp_err_t errRc = esp_ble_gattc_search_service(
 		getGattcIf(),
 		getConnId(),
 		nullptr            // Filter UUID
 	);
-	m_semaphoreSearchCmplEvt.take("getServices");
 	if (errRc != ESP_OK) {
 		ESP_LOGE(LOG_TAG, "esp_ble_gattc_search_service: rc=%d %s", errRc, GeneralUtils::errorToString(errRc));
 		m_semaphoreSearchCmplEvt.give();
